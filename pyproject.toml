@@ -9,9 +9,10 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-xlrd = "^2.0.1"
 openpyxl = "^3.1.2"
+python = "^3.11"
+requests-mock = "^1.12.1"
+xlrd = "^2.0.1"
 
 
 [tool.poetry.group.dev.dependencies]

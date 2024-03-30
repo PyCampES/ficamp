@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "ficamp"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Analyze your bank data and categorize it."
+authors = ["Santiago Fraire Willemoes <santiwilly@gmail.com>"]
 readme = "README.md"
 packages = [
   { include = "ficamp", from = "src" }

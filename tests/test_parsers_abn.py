@@ -36,8 +36,8 @@ def test_transactiondate_parser_raises(inputs: str):
 @pytest.mark.parametrize(
     "input, expected",
     [
-        ["-40,50", Decimal("-40.50")],
-        ["-1,5", Decimal("-1.5")],
+        ["-40.50", Decimal("-40.50")],
+        ["-1.5", Decimal("-1.5")],
     ],
 )
 def test_amount_parser_ok(input: str, expected: Decimal):
@@ -64,17 +64,36 @@ def test_parse_trtp_ok(input: str, expected: str):
     [
         [
             "SEPA Overboeking                 IBAN: XXXXX        BIC: ABNANL2A                    Naam: ABN AMRO INZAKE GELDMAAT  Omschrijving: Storting 12-01-24  15:36 uur, Pas 172              Geldautomaat 812936              1053EK Amsterdam                Kenmerk: 401215363553",
-            "R DE JONG",
+            "SEPA|ABN AMRO INZAKE GELDMAAT|Storting 12-01-24  15:36 uur, Pas 172              Geldautomaat 812936              1053EK Amsterdam                Kenmerk: 401215363553",
         ],
     ],
 )
 def test_parse_sepa_ok(input: str, expected: str):
     out = ConceptParser().parse_sepa(input)
-    {
-        "IBAN": "XXXXX",
-        "BIC": "ABNANL2A",
-        "Naam": "ABN AMRO INZAKE GELDMAAT",
-        "Omschrijving": "Storting 12-01-24 1536 uur, Pas 172 Geldautomaat 812936              1053EK Amsterdam",
-        "Kenmerk": "401215363553",
-    }
+    assert out == expected
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        [
+            "BEA, Betaalpas                   Albert Heijn 1635,PAS172        NR:G234GV, 12.01.24/17:53        AMSTERDAM",
+            "Albert Heijn 1635|AMSTERDAM",
+        ],
+        [
+            "BEA, Betaalpas                   Bbrood-16 BV,PAS172             NR:695THN, 13.01.24/12:07        AMSTERDAM",
+            "Bbrood-16 BV|AMSTERDAM",
+        ],
+        [
+            "BEA, Betaalpas                   Hong Kong Superstore,PAS172     NR:WKL2N1, 23.01.24/11:37        AMSTERDAM",
+            "Hong Kong Superstore|AMSTERDAM",
+        ],
+        [
+            "BEA, Betaalpas                   Lidl 423 A'dam 2eHel,PAS172     NR:31Z65H, 31.01.24/14:08        AMSTERDAM",
+            "Lidl 423 A'dam 2eHel|AMSTERDAM",
+        ],
+    ],
+)
+def test_parse_bea_gea_ok(input: str, expected: str):
+    out = ConceptParser().parse_bea_gea(input)
     assert out == expected

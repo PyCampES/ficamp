@@ -1,10 +1,11 @@
-from pathlib import Path
 import os
-from ficamp.types import Tx
-from ficamp.parsers.protocol import Parser
-from openpyxl import load_workbook
 from datetime import datetime
 from decimal import Decimal
+from pathlib import Path
+
+from ficamp.parsers.protocol import Parser
+from ficamp.types import Tx
+from openpyxl import load_workbook
 
 
 class AccountBSabadellParser(Parser):

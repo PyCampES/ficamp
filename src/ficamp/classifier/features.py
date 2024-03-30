@@ -1,9 +1,8 @@
+from dataclasses import dataclass
 from functools import lru_cache
 
 import numpy as np
 from sklearn.utils import murmurhash3_32
-
-from dataclasses import dataclass
 
 
 @dataclass

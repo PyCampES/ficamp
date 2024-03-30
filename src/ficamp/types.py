@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from enum import StrEnum
+
+
+class Currency(StrEnum):
+    EUR = "EUR"
+    USD = "USD"
 
 
 @dataclass
@@ -9,7 +15,7 @@ class Tx:
 
     date: datetime
     amount: Decimal
-    currency: str
+    currency: Currency
     concept: str
     category: None | str
     metadata: dict[str, str]

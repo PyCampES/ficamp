@@ -10,7 +10,7 @@ from ficamp.datastructures import Currency
 
 
 class AccountBSabadellParser(Parser):
-    """Parser for BBVA bank account extract"""
+    """Parser for BSabadell bank account extract"""
 
     def load(self, filename: Path | None = None):
         wb = load_workbook(filename)
@@ -59,7 +59,7 @@ class AccountBSabadellParser(Parser):
 
 
 class CreditCardBSabadellParser(Parser):
-    """Parser for Banc Sabadell Credit Card Extract"""
+    """Parser for BSabadell Credit Card Extract"""
 
     def load(self, filename: Path | None = None):
         wb = load_workbook(filename)

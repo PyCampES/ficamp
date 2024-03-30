@@ -94,7 +94,7 @@ class CreditCardBBVAParser(Parser):
         ]
 
     def row_processor(self, row):
-        # Skip Recharging the Credit Card
+        # Skip Recharging the Credit Card, as it's an useless operation from user's POV.
         if row[3] > 0:
             return None
 

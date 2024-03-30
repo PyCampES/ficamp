@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from ficamp.types import Tx
+from ficamp.datastructures import Tx
 from ficamp.parsers.protocol import Parser
 from openpyxl import load_workbook
 from datetime import datetime

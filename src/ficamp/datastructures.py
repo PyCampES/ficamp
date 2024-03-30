@@ -17,6 +17,7 @@ class Concept:
     If the `best_concept_match` is not useful for the categorizer, it can choose
     to use the raw concept instead.
     """
+
     best_concept_match: str
     raw: str
 

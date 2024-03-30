@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 import xlrd  # type: ignore
-from ficamp.parsers.protocol import Parser
+from ficamp.parsers.protocols import Parser
 from ficamp.datastructures import Currency, Tx
 
 TRANSACTIONDATE_REGEX = r"(\d{4})(\d{2})(\d{2})"

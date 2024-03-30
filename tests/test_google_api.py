@@ -19,7 +19,7 @@ def mock_requests_fixture():
 def test_search_google_maps(mock_requests):
     mock_response = {
         "results": [{"types": ["restaurant", "food"], "place_id": "some_place_id"}],
-        "status": "OK"
+        "status": "OK",
     }
     mock_requests.get(
         "https://maps.googleapis.com/maps/api/place/textsearch/json",
@@ -34,7 +34,8 @@ def test_search_google_maps(mock_requests):
 
 def test_search_google_maps_request_failure(mock_requests):
     mock_requests.get(
-        "https://maps.googleapis.com/maps/api/place/textsearch/json", status_code=200,
+        "https://maps.googleapis.com/maps/api/place/textsearch/json",
+        status_code=200,
         json={"results": [], "status": "OK"},
     )
 
@@ -57,7 +58,8 @@ def test_get_place_details(mock_requests):
 
 def test_get_place_details_request_empty(mock_requests):
     mock_requests.get(
-        "https://places.googleapis.com/v1/places/some_place_id", status_code=200,
+        "https://places.googleapis.com/v1/places/some_place_id",
+        status_code=200,
         json={"results": [], "status": "OK"},
     )
 
@@ -68,7 +70,7 @@ def test_get_place_details_request_empty(mock_requests):
 def test_query_google_places_new(mock_requests):
     mock_response = {
         "places": [{"types": ["cafe", "food"], "place_id": "new_place_id"}],
-        "status": "OK"
+        "status": "OK",
     }
     mock_requests.post(
         "https://places.googleapis.com/v1/places:searchText",
@@ -83,7 +85,8 @@ def test_query_google_places_new(mock_requests):
 
 def test_query_google_places_new_request_failure(mock_requests):
     mock_requests.post(
-        "https://places.googleapis.com/v1/places:searchText", status_code=200,
+        "https://places.googleapis.com/v1/places:searchText",
+        status_code=200,
         json={"results": [], "status": "OK"},
     )
 
@@ -116,10 +119,7 @@ def test_find_business_category_maps_no_categories_details_fail_new_places_succe
     # Mock search_google_maps with only place_id and no types
     mock_requests.get(
         "https://maps.googleapis.com/maps/api/place/textsearch/json",
-        json={
-            "results": [{"types": [], "place_id": "some_place_id"}],
-            "status": "OK"
-        },
+        json={"results": [{"types": [], "place_id": "some_place_id"}], "status": "OK"},
         status_code=200,
     )
 
@@ -135,7 +135,7 @@ def test_find_business_category_maps_no_categories_details_fail_new_places_succe
         "https://places.googleapis.com/v1/places:searchText",
         json={
             "places": [{"types": ["cafe"], "place_id": "new_place_id"}],
-            "status": "OK"
+            "status": "OK",
         },
         status_code=200,
     )
@@ -182,7 +182,7 @@ def test_find_business_category_all_filtered_out_raise_exception(mock_requests):
         "https://maps.googleapis.com/maps/api/place/textsearch/json",
         json={
             "results": [{"types": ["point_of_interest"], "place_id": "some_place_id"}],
-            "status": "OK"
+            "status": "OK",
         },
         status_code=200,
     )
@@ -190,7 +190,7 @@ def test_find_business_category_all_filtered_out_raise_exception(mock_requests):
         "https://places.googleapis.com/v1/places:searchText",
         json={
             "places": [{"types": ["establishment"], "place_id": "new_place_id"}],
-            "status": "OK"
+            "status": "OK",
         },
         status_code=200,
     )

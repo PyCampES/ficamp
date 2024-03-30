@@ -6,7 +6,6 @@ import requests
 GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "FIXME_CONFIGURE_API_KEY")
 
 
-
 class GoogleException(Exception):
     """Custom Exception for raising errors to the caller."""
 

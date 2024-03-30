@@ -2,7 +2,7 @@
 
 ```sh
 python -m venv .venv
-poetry install
+./scripts/install
 ```
 
 

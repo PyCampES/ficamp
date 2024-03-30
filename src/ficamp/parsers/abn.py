@@ -1,4 +1,8 @@
-from dataclasses import dataclass
+"""ABN AMRO is a Dutch Bank
+
+Even though, ABN operates in more countries, we are only covering the NL branch with xls files.
+"""
+
 from decimal import Decimal
 import re
 from datetime import datetime
@@ -10,9 +14,6 @@ from ficamp.datastructures import Currency, Tx
 
 TRANSACTIONDATE_REGEX = r"(\d{4})(\d{2})(\d{2})"
 transactiondate_re = re.compile(TRANSACTIONDATE_REGEX)
-
-TRTP_REGEX = r"/(NAME|IBAN|REMI|CSID)/([^/]+)"
-trtp_re = re.compile(TRTP_REGEX)
 
 
 def transactiondate_parser(value: str) -> datetime:
@@ -30,44 +31,6 @@ def amount_parser(value: str) -> Decimal:
     return Decimal(v)
 
 
-@dataclass
-class Concept:
-    best_concept_match: str
-    raw: str
-
-
-def parse_sepa(field):
-    matches = re.findall(r"(SEPA Overboeking\s+?)*([^:]+?):([^:]+?)(\s{2,}|$)", field)
-    fields = {}
-    for match in matches:
-        # match is a tuple, we're interested in the second and third elements
-        key, val = match[1:3]
-        if key and val:  # Ensure both key and value are not empty
-            fields[key.strip()] = val.strip()
-
-    payee = fields.get("Naam", "") + (
-        " " + fields.get("IBAN", "") if fields.get("IBAN") else ""
-    )
-    memo = fields.get("Omschrijving", "")
-    return payee, memo
-
-
-def parse_trtp(field) -> str:
-    """TRTP is a very ugly ugly thing.
-
-    It's a string with a lot of fields separated by slashes.
-    """
-    matches = trtp_re.findall(field)
-    if not matches:
-        raise ValueError("No matches found")
-
-    fields = dict(matches)
-    payee = fields.get("NAME", "")
-    memo = fields.get("REMI", "")
-    out = "|".join([payee, memo])
-    return out
-
-
 class ConceptParser:
     """Parse ABN concepts.
 
@@ -80,15 +43,52 @@ class ConceptParser:
 
     """
 
-    def __init__(self, concept: str):
-        self.concept = concept
+    TRTP_REGEX = r"/(NAME|REMI|CSID)/([^/]+)"
+    trtp_re = re.compile(TRTP_REGEX)
 
-    def parse(self) -> str:
-        """Parses the concept."""
-        return self.concept
+    SEPA_REGEX = r"(?m)^[SEPA Overboeking](\w+):\s+(.*)"
+    sepa_re = re.compile(SEPA_REGEX)
+
+    def parse_trtp(self, concept: str) -> str:
+        """TRTP is a very ugly ugly thing.
+
+        It's a string with a lot of fields separated by slashes.
+        """
+        matches = self.trtp_re.findall(concept)
+        if not matches:
+            raise ValueError("[TRTP] No matches found")
+        out = "|".join([f"{key}:{value}" for key, value in matches])
+        return out
+
+    def parse_sepa(self, concept: str) -> str:
+        # matches = self.sepa_re.findall(concept)
+        # fields = {}
+        # print(matches)
+        # for match in matches:
+        #     # match is a tuple, we're interested in the second and third elements
+        #     key, val = match[1:3]
+        #     if key and val:  # Ensure both key and value are not empty
+        #         fields[key.strip()] = val.strip()
+        # print(fields)
+        # payee = fields.get("Naam", "") + (
+        #     " " + fields.get("IBAN", "") if fields.get("IBAN") else ""
+        # )
+        # memo = fields.get("Omschrijving", "")
+
+        match = re.search(r"(?m)^SEPA Overboeking(.*)", concept)
+        if not match:
+            raise ValueError("[SEPA] No matches found")
+
+        # Split the remaining text into key-value pairs
+        pairs = re.findall(r"(?m)^(\w+):\s+(.*)", match.group(1))
+        print(pairs)
+        # Convert the list of pairs to a dictionary
+        # return dict(pairs)
+        out = "|".join([f"{key}:{value}" for key, value in pairs])
+        return out
 
 
-class AbnXLSParser(Parser):
+class AbnParser(Parser):
     """Parser for ABN AMRO bank statements.
 
     ABN uses the old `.xls` excel version, and we require xlrd

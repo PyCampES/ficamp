@@ -3,8 +3,8 @@ from decimal import Decimal
 
 import pytest
 from ficamp.parsers.abn import (
+    ConceptParser,
     amount_parser,
-    parse_trtp,
     transactiondate_parser,
 )
 
@@ -49,11 +49,32 @@ def test_amount_parser_ok(input: str, expected: Decimal):
     "input, expected",
     [
         [
-            "/TRTP/SEPA OVERBOEKING/IBAN/NL70ABNA0475303083/BIC/ABNANL2A/NAME/R DE JONG/EREF/NOTPROVIDED",
-            "R DE JONG|",
-        ]
+            "/TRTP/SEPA OVERBOEKING/IBAN/XXXXXX/BIC/ABNANL2A/NAME/R DE JONG/EREF/NOTPROVIDED",
+            "NAME:R DE JONG",
+        ],
     ],
 )
 def test_parse_trtp_ok(input: str, expected: str):
-    out = parse_trtp(input)
+    out = ConceptParser().parse_trtp(input)
+    assert out == expected
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        [
+            "SEPA Overboeking                 IBAN: XXXXX        BIC: ABNANL2A                    Naam: ABN AMRO INZAKE GELDMAAT  Omschrijving: Storting 12-01-24  15:36 uur, Pas 172              Geldautomaat 812936              1053EK Amsterdam                Kenmerk: 401215363553",
+            "R DE JONG",
+        ],
+    ],
+)
+def test_parse_sepa_ok(input: str, expected: str):
+    out = ConceptParser().parse_sepa(input)
+    {
+        "IBAN": "XXXXX",
+        "BIC": "ABNANL2A",
+        "Naam": "ABN AMRO INZAKE GELDMAAT",
+        "Omschrijving": "Storting 12-01-24 1536 uur, Pas 172 Geldautomaat 812936              1053EK Amsterdam",
+        "Kenmerk": "401215363553",
+    }
     assert out == expected

@@ -10,13 +10,25 @@ class Currency(StrEnum):
 
 
 @dataclass
+class Concept:
+    """This class represent a potential match or the raw concept.
+
+    The parser may try to generate the `best_concept_match` from the raw concept.
+    If the `best_concept_match` is not useful for the categorizer, it can choose
+    to use the raw concept instead.
+    """
+    best_concept_match: str
+    raw: str
+
+
+@dataclass
 class Tx:
     """Represents a transaction extracted from a bank"""
 
     date: datetime
     amount: Decimal
     currency: Currency
-    concept: str
+    concept: str | Concept
     category: None | str
     metadata: dict[str, str]
     tags: list[str]

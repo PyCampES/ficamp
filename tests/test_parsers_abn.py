@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import pytest
+
 from ficamp.parsers.abn import (
     ConceptParser,
     amount_parser,

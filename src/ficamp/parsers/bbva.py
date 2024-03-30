@@ -2,9 +2,10 @@ from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
+from openpyxl import load_workbook
+
 from ficamp.datastructures import Tx
 from ficamp.parsers.protocols import Parser
-from openpyxl import load_workbook
 
 
 class AccountBBVAParser(Parser):

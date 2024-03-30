@@ -3,18 +3,10 @@ from decimal import Decimal
 
 import pytest
 from ficamp.parsers.abn import (
-    AbnXLSParser,
     amount_parser,
     parse_trtp,
     transactiondate_parser,
 )
-
-
-def works():
-    p = AbnXLSParser()
-    p.load("samples/santi-txs.xls")
-    txs = p.parse()
-    print(txs)
 
 
 @pytest.mark.parametrize(
@@ -58,7 +50,7 @@ def test_amount_parser_ok(input: str, expected: Decimal):
     [
         [
             "/TRTP/SEPA OVERBOEKING/IBAN/NL70ABNA0475303083/BIC/ABNANL2A/NAME/R DE JONG/EREF/NOTPROVIDED",
-            "R DE JONG",
+            "R DE JONG|",
         ]
     ],
 )

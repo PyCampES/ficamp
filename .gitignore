@@ -1,5 +1,7 @@
 # FiCamp stuff
 *.xlsx
+*.xls
+
 
 
 # Byte-compiled / optimized / DLL files

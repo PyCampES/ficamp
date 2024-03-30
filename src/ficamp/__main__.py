@@ -16,6 +16,7 @@ from ficamp.parsers.bsabadell import AccountBSabadellParser
 from ficamp.parsers.bsabadell import CreditCardBSabadellParser
 from ficamp.parsers.bbva import AccountBBVAParser
 from ficamp.parsers.bbva import CreditCardBBVAParser
+from ficamp.parsers.caixabank import CaixaBankParser
 
 
 def cli() -> argparse.Namespace:

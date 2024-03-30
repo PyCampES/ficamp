@@ -11,23 +11,34 @@ class AccountBBVAParser(Parser):
     """Parser for BBVA bank account extract"""
 
     def load(self, filename: Path | None = None):
-
         # TODO: rearrange this.
 
         # filename = Path("../data/enero-febrero-bbva-cuenta.xlsx")
-        filename = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data/enero-febrero-bbva-cuenta.xlsx")
+        filename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data/enero-febrero-bbva-cuenta.xlsx",
+        )
 
         wb = load_workbook(filename)
         sheet = wb.active
         start_row = 6
         start_column = 2
 
-        return [row for row in sheet.iter_rows(min_row=start_row, min_col=start_column, values_only=True)]
+        return [
+            row
+            for row in sheet.iter_rows(
+                min_row=start_row, min_col=start_column, values_only=True
+            )
+        ]
 
     def parse(self) -> list[Tx]:
         rows = self.load()
 
-        return [self.row_processor(row) for row in rows if self.row_processor(row) is not None]
+        return [
+            self.row_processor(row)
+            for row in rows
+            if self.row_processor(row) is not None
+        ]
 
     def row_processor(self, row):
         # Skip Credit Card charge in Account
@@ -46,7 +57,7 @@ class AccountBBVAParser(Parser):
             concept=concept,
             category=None,
             metadata={"more_details": row[8], "origin": "BBVA Account"},
-            tags=[]
+            tags=[],
         )
 
 
@@ -54,22 +65,33 @@ class CreditCardBBVAParser(Parser):
     """Parser for BBVA Credit Card Extract"""
 
     def load(self, filename: Path | None = None):
-
         # TODO: rearrange this
         # filename = Path("../data/enero-febrero-bbva-cuenta.xlsx")
-        filename = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data/enero-febrero-bbva-targeta.xlsx")
+        filename = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data/enero-febrero-bbva-targeta.xlsx",
+        )
 
         wb = load_workbook(filename)
         sheet = wb.active
         start_row = 6
         start_column = 2
 
-        return [row for row in sheet.iter_rows(min_row=start_row, min_col=start_column, values_only=True)]
+        return [
+            row
+            for row in sheet.iter_rows(
+                min_row=start_row, min_col=start_column, values_only=True
+            )
+        ]
 
     def parse(self) -> list[Tx]:
         rows = self.load()
 
-        return [self.row_processor(row) for row in rows if self.row_processor(row) is not None]
+        return [
+            self.row_processor(row)
+            for row in rows
+            if self.row_processor(row) is not None
+        ]
 
     def row_processor(self, row):
         # Skip Recharging the Credit Card
@@ -85,9 +107,8 @@ class CreditCardBBVAParser(Parser):
             concept=row[2],
             category=None,
             metadata={"origin": "BBVA Credit Card"},
-            tags=[]
+            tags=[],
         )
-
 
 
 if __name__ == "__main__":

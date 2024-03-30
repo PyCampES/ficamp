@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Protocol
 
-from ficamp.types import Tx
+from ficamp.datastructures import Tx
 
 
 class Parser(Protocol):

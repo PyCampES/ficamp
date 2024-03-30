@@ -12,10 +12,8 @@ from ficamp.classifier.infer import infer_tx_category
 from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx
 from ficamp.parsers.abn import AbnParser
-from ficamp.parsers.bsabadell import AccountBSabadellParser
-from ficamp.parsers.bsabadell import CreditCardBSabadellParser
-from ficamp.parsers.bbva import AccountBBVAParser
-from ficamp.parsers.bbva import CreditCardBBVAParser
+from ficamp.parsers.bbva import AccountBBVAParser, CreditCardBBVAParser
+from ficamp.parsers.bsabadell import AccountBSabadellParser, CreditCardBSabadellParser
 from ficamp.parsers.caixabank import CaixaBankParser
 
 

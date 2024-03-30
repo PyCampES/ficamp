@@ -4,9 +4,8 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from ficamp.datastructures import Tx
+from ficamp.datastructures import Currency, Tx
 from ficamp.parsers.protocols import Parser
-from ficamp.datastructures import Currency
 
 
 class CaixaBankParser(Parser):
@@ -18,9 +17,12 @@ class CaixaBankParser(Parser):
         start_row = 4
         start_column = 1
 
-        self.rows = [row for row in sheet.iter_rows(
-            min_row=start_row, min_col=start_column, values_only=True
-        )]
+        self.rows = [
+            row
+            for row in sheet.iter_rows(
+                min_row=start_row, min_col=start_column, values_only=True
+            )
+        ]
 
     def parse(self) -> list[Tx]:
         return [

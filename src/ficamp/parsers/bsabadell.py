@@ -4,9 +4,8 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from ficamp.datastructures import Tx
+from ficamp.datastructures import Currency, Tx
 from ficamp.parsers.protocols import Parser
-from ficamp.datastructures import Currency
 
 
 class AccountBSabadellParser(Parser):
@@ -18,7 +17,12 @@ class AccountBSabadellParser(Parser):
         start_row = 10
         start_column = 1
 
-        self.rows = [row for row in sheet.iter_rows(min_row=start_row, min_col=start_column, values_only=True)]
+        self.rows = [
+            row
+            for row in sheet.iter_rows(
+                min_row=start_row, min_col=start_column, values_only=True
+            )
+        ]
 
     def parse(self) -> list[Tx]:
         return [
@@ -88,7 +92,6 @@ class CreditCardBSabadellParser(Parser):
         ]
 
     def row_processor(self, row):
-
         return Tx(
             date=datetime.strptime(f"{row[0]}/{datetime.now().year}", "%d/%m/%Y"),
             amount=Decimal(str(row[4]).replace(",", ".")),

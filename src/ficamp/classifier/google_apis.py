@@ -1,8 +1,9 @@
 import json
+import os
 
 import requests
 
-GOOGLE_API_KEY = "FIXME_GET_FROM_ENV"
+GOOGLE_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "FIXME_CONFIGURE_API_KEY")
 
 
 class GoogleException(Exception):
@@ -17,13 +18,15 @@ def search_google_maps(business_name, location=None, api_key=GOOGLE_API_KEY):
         params["radius"] = 5000  # Radius in meters (you can adjust this)
 
     response = requests.get(base_url, params=params)
-    if response.status_code == 200:
-        results = response.json().get("results", [])
-        if results:
-            # Assuming the first result is the most relevant
-            categories = results[0].get("types", [])
-            place_id = results[0].get("place_id", None)
-            return place_id, categories
+    response.raise_for_status()
+    if response.json()["status"] != "OK":
+        raise GoogleException(response.json()["error_message"])
+    results = response.json().get("results", [])
+    if results:
+        # Assuming the first result is the most relevant
+        categories = results[0].get("types", [])
+        place_id = results[0].get("place_id", None)
+        return place_id, categories
     return None, None
 
 
@@ -35,9 +38,10 @@ def get_place_details(place_id):
         "X-Goog-FieldMask": "id,displayName,types",
     }
     response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return response.json().get("types", [])
-    return []
+    response.raise_for_status()
+    if response.json()["status"] != "OK":
+        raise GoogleException(response.json()["error_message"])
+    return response.json().get("types", [])
 
 
 def query_google_places_new(query):
@@ -49,12 +53,14 @@ def query_google_places_new(query):
     }
     payload = {"textQuery": query}
     response = requests.post(url, headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        places = response.json().get("places", [])
-        if places:
-            categories = places[0].get("types", [])
-            place_id = places[0].get("place_id", None)
-            return place_id, categories
+    response.raise_for_status()
+    if response.json()["status"] != "OK":
+        raise GoogleException(response.json()["error_message"])
+    places = response.json().get("places", [])
+    if places:
+        categories = places[0].get("types", [])
+        place_id = places[0].get("place_id", None)
+        return place_id, categories
     return None, None
 
 

@@ -36,3 +36,6 @@ ignore_missing_imports = true
 
 [tool.ruff.lint]
 select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ficamp", "tests"]

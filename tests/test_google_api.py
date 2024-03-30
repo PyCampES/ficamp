@@ -1,5 +1,6 @@
 import pytest
 import requests_mock
+
 from ficamp.classifier.google_apis import (
     GoogleException,
     find_business_category_in_google,

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Any
 
 import numpy as np
 from sklearn.utils import murmurhash3_32
@@ -46,7 +47,7 @@ def extract_city(d) -> str:
     return d | {"city": "Lleida"}
 
 
-def extract_payment_method(d: dict) -> str:
+def extract_payment_method(d: dict) -> str | dict[str, Any]:
     "Return payment method name in lowercase if found, else <UNK>"
     # TODO:improve logic
 

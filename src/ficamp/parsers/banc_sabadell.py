@@ -3,9 +3,10 @@ from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from ficamp.parsers.protocol import Parser
-from ficamp.types import Tx
 from openpyxl import load_workbook
+
+from ficamp.datastructures import Tx
+from ficamp.parsers.protocols import Parser
 
 
 class AccountBSabadellParser(Parser):
@@ -15,10 +16,10 @@ class AccountBSabadellParser(Parser):
         # TODO: rearrange this.
 
         # filename = Path("../data/enero-febrero-bbva-cuenta.xlsx")
-        filename = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/enero-febrero-bsabadell-cuenta.xlsx",
-        )
+        # filename = os.path.join(
+        #     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        #     "data/enero-febrero-bsabadell-cuenta.xlsx",
+        # )
 
         wb = load_workbook(filename)
         sheet = wb.active
@@ -80,10 +81,10 @@ class CreditCardBSabadellParser(Parser):
     def load(self, filename: Path | None = None):
         # TODO: rearrange this
         # filename = Path("../data/enero-febrero-bbva-cuenta.xlsx")
-        filename = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data/enero-febrero-bsabadell-targeta.xlsx",
-        )
+        # filename = os.path.join(
+        #     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        #     "data/enero-febrero-bsabadell-targeta.xlsx",
+        # )
 
         wb = load_workbook(filename)
         sheet = wb.active

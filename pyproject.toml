@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ficamp"
-version = "0.5.0"
+version = "0.6.0"
 description = "Analyze your bank data and categorize it."
 authors = ["Santiago Fraire Willemoes <santiwilly@gmail.com>"]
 readme = "README.md"

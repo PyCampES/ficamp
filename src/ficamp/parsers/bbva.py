@@ -44,7 +44,7 @@ class AccountBBVAParser(Parser):
             currency=Currency(row[5]),
             concept=concept,
             category=None,
-            metadata={"more_details": row[8], "origin": "BBVA Account"},
+            tx_metadata={"more_details": row[8], "origin": "BBVA Account"},
             tags=[],
         )
 
@@ -84,6 +84,6 @@ class CreditCardBBVAParser(Parser):
             currency=Currency("EUR"),
             concept=row[2],
             category=None,
-            metadata={"origin": "BBVA Credit Card"},
+            tx_metadata={"origin": "BBVA Credit Card"},
             tags=[],
         )

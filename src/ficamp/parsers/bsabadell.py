@@ -11,7 +11,7 @@ from ficamp.parsers.protocols import Parser
 class AccountBSabadellParser(Parser):
     """Parser for BSabadell bank account extract"""
 
-    def load(self, filename: Path | None = None):
+    def load(self, filename: Path):
         wb = load_workbook(filename)
         sheet = wb.active
         start_row = 10
@@ -44,7 +44,7 @@ class AccountBSabadellParser(Parser):
             currency=Currency("EUR"),
             concept=concept,
             category=None,
-            metadata={"origin": "BSABADELL Account"},
+            tx_metadata={"origin": "BSABADELL Account"},
             tags=[],
         )
 
@@ -65,7 +65,7 @@ class AccountBSabadellParser(Parser):
 class CreditCardBSabadellParser(Parser):
     """Parser for BSabadell Credit Card Extract"""
 
-    def load(self, filename: Path | None = None):
+    def load(self, filename: Path):
         wb = load_workbook(filename)
         sheet = wb.active
         start_row = 12
@@ -94,10 +94,10 @@ class CreditCardBSabadellParser(Parser):
     def row_processor(self, row):
         return Tx(
             date=datetime.strptime(f"{row[0]}/{datetime.now().year}", "%d/%m/%Y"),
-            amount=Decimal(str(row[4]).replace(",", ".")),
+            amount=Decimal(f'-{str(row[4]).replace(",", ".")}'),
             currency=Currency("EUR"),
             concept=row[1],
             category=None,
-            metadata={"origin": "BSABADELL Credit Card", "location": row[2]},
+            tx_metadata={"origin": "BSABADELL Credit Card", "tx_location": row[2]},
             tags=[],
         )

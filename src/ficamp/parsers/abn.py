@@ -167,6 +167,6 @@ class AbnParser(Parser):
             currency=_currency,
             concept=_concept,
             category=None,
-            metadata={},
+            tx_metadata={},
             tags=[],
         )

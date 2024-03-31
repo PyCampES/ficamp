@@ -15,6 +15,7 @@ from ficamp.parsers.abn import AbnParser
 from ficamp.parsers.bbva import AccountBBVAParser, CreditCardBBVAParser
 from ficamp.parsers.bsabadell import AccountBSabadellParser, CreditCardBSabadellParser
 from ficamp.parsers.caixabank import CaixaBankParser
+from ficamp.parsers.enums import BankParser
 
 
 def cli() -> argparse.Namespace:
@@ -31,7 +32,10 @@ def cli() -> argparse.Namespace:
     # Subparser for the import command
     import_parser = subparsers.add_parser("import", help="Import a Transactions")
     import_parser.add_argument(
-        "--bank", choices=["abn"], default="abn", help="Specify the bank for the import"
+        "--bank",
+        choices=[e.value for e in BankParser],
+        default="abn",
+        help="Specify the bank for the import",
     )
     import_parser.add_argument("filename", help="File to load")
     import_parser.set_defaults(func=import_data)
@@ -51,23 +55,24 @@ def cli() -> argparse.Namespace:
 def import_data(args, engine):
     """Run the parsers."""
     print(f"Importing data from {args.filename} for bank {args.bank}.")
-    # TODO: Build enum for banks
-    if args.bank == "abn":
-        parser = AbnParser()
-        parser.load(args.filename)
-        transactions = parser.parse()
-        for tx in transactions:
-            with Session(engine) as session:
-                # Assuming 'date' and 'amount' can uniquely identify a transaction
-                statement = select(Tx).where(
-                    Tx.date == tx.date, Tx.amount == tx.amount, Tx.concept == tx.concept
-                )
-                result = session.exec(statement).first()
-                if result is None:  # No existing transaction found
-                    session.add(tx)
-                    session.commit()
-                else:
-                    print(f"Transaction already exists in the database. {tx}")
+    parser = BankParser(args.bank).get_parser()
+    parser.load(args.filename)
+    save_transactions_to_db(parser.parse(), engine)
+
+
+def save_transactions_to_db(transactions, engine):
+    for tx in transactions:
+        with Session(engine) as session:
+            # Assuming 'date' and 'amount' can uniquely identify a transaction
+            statement = select(Tx).where(
+                Tx.date == tx.date, Tx.amount == tx.amount, Tx.concept == tx.concept
+            )
+            result = session.exec(statement).first()
+            if result is None:  # No existing transaction found
+                session.add(tx)
+                session.commit()
+            else:
+                print(f"Transaction already exists in the database. {tx}")
 
 
 def get_category_dict(categories_database_path="categories_database.json"):

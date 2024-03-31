@@ -40,6 +40,6 @@ class CaixaBankParser(Parser):
             currency=Currency("EUR"),
             concept=concept,
             category=None,
-            metadata={"origin": "CaixaBank Account"},
+            tx_metadata={"origin": "CaixaBank Account"},
             tags=[],
         )

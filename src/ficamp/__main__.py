@@ -75,46 +75,22 @@ def save_transactions_to_db(transactions, engine):
                 print(f"Transaction already exists in the database. {tx}")
 
 
-def get_category_dict(categories_database_path="categories_database.json"):
-    # FIXME: move categories to SQLITE instead of json file.
-    if not os.path.exists(categories_database_path):
-        return {}
-    with open(categories_database_path, "r") as file:
-        category_dict = json.load(file)
-    string_to_category = {
-        string: category
-        for category, strings in category_dict.items()
-        for string in strings
-    }
-    return string_to_category
-
-
-def revert_and_save_dict(string_to_category, filename="categories_database.json"):
-    # Reverting the dictionary
-    category_to_strings = {}
-    for string, category in string_to_category.items():
-        category_to_strings.setdefault(category, []).append(string)
-
-    # Saving to a JSON file
-    if os.path.exists(filename):
-        shutil.move(filename, "/tmp/categories_db_bkp.json")
-    with open(filename, "w") as file:
-        json.dump(category_to_strings, file, indent=4)
-
-
-class DefaultAnswers(StrEnum):
+class DefaultAnswers:
     SKIP = "Skip this Tx"
     NEW = "Type a new category"
 
 
-def query_business_category(tx, categories_dict, infer_category=False):
+def query_business_category(tx, session, infer_category=False):
     # first try to get from the category_dict
     tx.concept_clean = preprocess(tx.concept)
-    category = categories_dict.get(tx.concept_clean)
+    statement = select(Tx.category).where(Tx.concept_clean == tx.concept_clean)
+    category = session.exec(statement).first()
     if category:
         return category
     # ask the user if we don't know it
-    categories_choices = list(set(categories_dict.values()))
+    # query each time to update
+    statement = select(Tx.category).where(Tx.category.is_not(None)).distinct()
+    categories_choices = session.exec(statement).all()
     categories_choices.extend([DefaultAnswers.NEW, DefaultAnswers.SKIP])
     default_choice = DefaultAnswers.SKIP
     if infer_category:
@@ -136,15 +112,11 @@ def query_business_category(tx, categories_dict, infer_category=False):
     if answer is None:
         # https://questionary.readthedocs.io/en/stable/pages/advanced.html#keyboard-interrupts
         raise KeyboardInterrupt
-    if answer:
-        categories_dict[tx.concept_clean] = answer
-        category = answer
-    return category
+    return answer
 
 
 def categorize(args, engine):
     """Function to categorize transactions."""
-    categories_dict = get_category_dict()
     try:
         with Session(engine) as session:
             statement = select(Tx).where(Tx.category.is_(None))
@@ -153,18 +125,15 @@ def categorize(args, engine):
             for tx in results:
                 print(f"Processing {tx}")
                 tx_category = query_business_category(
-                    tx, categories_dict, infer_category=args.infer_category
-                )
+                    tx, session, infer_category=args.infer_category)
                 if tx_category:
                     print(f"Saving category for {tx.concept}: {tx_category}")
                     tx.category = tx_category
                     # update DB
                     session.add(tx)
                     session.commit()
-                    revert_and_save_dict(categories_dict)
                 else:
                     print("Not saving any category for thi Tx")
-        revert_and_save_dict(categories_dict)
     except KeyboardInterrupt:
         print("Closing")
 

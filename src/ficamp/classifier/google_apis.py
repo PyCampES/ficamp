@@ -94,8 +94,8 @@ def query_gmaps_category(concept):
         cached_category = cached.get(concept)
         if not cached_category:
             try:
-                ams = "52.3676,4.9041"
-                gmaps_category = find_business_category_in_google(concept, location=ams)
+                #ams = "52.3676,4.9041"
+                gmaps_category = find_business_category_in_google(concept)
             except GoogleException as error:
                 print(f"error: {error}")
                 gmaps_category = ""

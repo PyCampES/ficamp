@@ -2,6 +2,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
+from typing import Optional
+
+from sqlalchemy import JSON, Column
+from sqlmodel import Field, SQLModel
 
 
 class Currency(StrEnum):
@@ -23,13 +27,14 @@ class Concept:
 
 
 @dataclass
-class Tx:
+class Tx(SQLModel, table=True):
     """Represents a transaction extracted from a bank"""
 
+    id: Optional[int] = Field(default=None, primary_key=True)
     date: datetime
     amount: Decimal
     currency: Currency
-    concept: str | Concept
+    concept: str
     category: None | str
-    metadata: dict[str, str]
-    tags: list[str]
+    tx_metadata: dict[str, str] = Field(sa_column=Column(JSON))
+    tags: list[str] = Field(sa_column=Column(JSON))

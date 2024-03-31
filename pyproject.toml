@@ -16,6 +16,8 @@ requests = "^2.31.0"
 python-dotenv = "^1.0.1"
 numpy = "^1.26.4"
 scikit-learn = "^1.4.1.post1"
+sqlmodel = "^0.0.16"
+questionary = "^2.0.1"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.9.0"

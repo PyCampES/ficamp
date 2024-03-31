@@ -167,3 +167,7 @@ cython_debug/
 
 samples/
 .ruff_cache/
+categories_database.json
+ficamp.db
+gcache.json
+

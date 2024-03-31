@@ -56,7 +56,7 @@ def extract_payment_method(d: dict) -> str | dict[str, Any]:
     res = "<UNK>"
     for method in payment_methods:
         if method in d["desc"]:
-            return method
+            res = method
     return d | {"payment_method": res}
 
 

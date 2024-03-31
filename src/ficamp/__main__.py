@@ -8,9 +8,9 @@ import questionary
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from ficamp.classifier.google_apis import query_gmaps_category
 from ficamp.datastructures import Tx
 from ficamp.parsers.abn import AbnParser
+from ficamp.classifier.infer import infer_tx_category
 
 
 def cli() -> argparse.Namespace:
@@ -36,7 +36,7 @@ def cli() -> argparse.Namespace:
     categorize_parser = subparsers.add_parser(
         "categorize", help="Categorize transactions"
     )
-    categorize_parser.add_argument("--query-google", action="store_true")
+    categorize_parser.add_argument("--infer-category", action="store_true")
     categorize_parser.set_defaults(func=categorize)
 
     args = parser.parse_args()
@@ -98,7 +98,7 @@ class DefaultAnswers(StrEnum):
     NEW = "Type a new category"
 
 
-def query_business_category(tx, categories_dict, query_google=False):
+def query_business_category(tx, categories_dict, infer_category=False):
     # first try to get from the category_dict
     category = categories_dict.get(tx.concept)
     if category:
@@ -107,12 +107,11 @@ def query_business_category(tx, categories_dict, query_google=False):
     categories_choices = list(set(categories_dict.values()))
     categories_choices.extend([DefaultAnswers.NEW, DefaultAnswers.SKIP])
     default_choice = DefaultAnswers.SKIP
-    if query_google:
-        gmap_category = query_gmaps_category(tx.concept)
-        if gmap_category != "Unknown":
-            print(f"Google Maps category is {gmap_category}")
-            categories_choices.append(gmap_category)
-            default_choice = gmap_category
+    if infer_category:
+        inferred_category = infer_tx_category(tx)
+        if inferred_category:
+            categories_choices.append(inferred_category)
+            default_choice = inferred_category
     print(f"{tx.date.isoformat()} {tx.amount} {tx.concept}")
     answer = questionary.select(
         "Please select the category for this TX",
@@ -143,7 +142,7 @@ def categorize(args, engine):
             for tx in results:
                 print(f"Processing {tx}")
                 tx_category = query_business_category(
-                    tx, categories_dict, query_google=args.query_google
+                    tx, categories_dict, infer_category=args.infer_category
                 )
                 if tx_category:
                     print(f"Saving category for {tx.concept}: {tx_category}")

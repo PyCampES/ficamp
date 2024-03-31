@@ -145,7 +145,7 @@ def main():
     try:
         args = cli()
         if args.command:
-            args.func(args, engine)
+            args.func(engine)
     except KeyboardInterrupt:
         print("\nClosing")
 

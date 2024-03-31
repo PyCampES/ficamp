@@ -2,15 +2,15 @@ import argparse
 import json
 import os
 import shutil
+from enum import StrEnum
 
-from dotenv import load_dotenv
-from sqlmodel import SQLModel, create_engine, Session, select
 import questionary
+from dotenv import load_dotenv
+from sqlmodel import Session, SQLModel, create_engine, select
 
-
+from ficamp.classifier.google_apis import query_gmaps_category
 from ficamp.datastructures import Tx
 from ficamp.parsers.abn import AbnParser
-from ficamp.classifier.google_apis import query_gmaps_category
 
 
 def cli() -> argparse.Namespace:
@@ -93,16 +93,21 @@ def revert_and_save_dict(string_to_category, filename="categories_database.json"
         json.dump(category_to_strings, file, indent=4)
 
 
+class DefaultAnswers(StrEnum):
+    SKIP = "Skip this Tx"
+    NEW = "Type a new category"
+
+
 def query_business_category(tx, categories_dict, query_google=False):
     # first try to get from the category_dict
     category = categories_dict.get(tx.concept)
     if category:
         return category
     # ask the user if we don't know it
-    default_choice = None
+    categories_choices = list(set(categories_dict.values()))
+    categories_choices.extend([DefaultAnswers.NEW, DefaultAnswers.SKIP])
+    default_choice = DefaultAnswers.SKIP
     if query_google:
-        categories_choices = list(set(categories_dict.values()))
-        categories_choices.append("Type a new category")
         gmap_category = query_gmaps_category(tx.concept)
         if gmap_category != "Unknown":
             print(f"Google Maps category is {gmap_category}")
@@ -115,39 +120,43 @@ def query_business_category(tx, categories_dict, query_google=False):
         default=default_choice,
         show_selected=True,
     ).ask()
-    if answer == "Type a new category":
-        print()
+    if answer == DefaultAnswers.NEW:
         answer = questionary.text("What's the category for the TX above").ask()
-        save = questionary.confirm(
-            f"Do you want to save the category as: {answer}?"
-        ).ask()
-    else:
-        save = True
-    if save:
+    if answer == DefaultAnswers.SKIP:
+        return None
+    if answer is None:
+        # https://questionary.readthedocs.io/en/stable/pages/advanced.html#keyboard-interrupts
+        raise KeyboardInterrupt
+    if answer:
         categories_dict[tx.concept] = answer
         category = answer
-        revert_and_save_dict(categories_dict)
     return category
 
 
 def categorize(args, engine):
     """Function to categorize transactions."""
     categories_dict = get_category_dict()
-    with Session(engine) as session:
-        statement = select(Tx).where(Tx.category.is_(None))
-        results = session.exec(statement).all()
-        for tx in results:
-            print(f"Processing {tx}")
-            tx_category = query_business_category(
-                tx, categories_dict, query_google=args.query_google
-            )
-            if tx_category:
-                print(f"Saving category for {tx.concept}: {tx_category}")
-                tx.category = tx_category
-                # update DB
-                session.add(tx)
-                session.commit()
-    revert_and_save_dict(categories_dict)
+    try:
+        with Session(engine) as session:
+            statement = select(Tx).where(Tx.category.is_(None))
+            results = session.exec(statement).all()
+            for tx in results:
+                print(f"Processing {tx}")
+                tx_category = query_business_category(
+                    tx, categories_dict, query_google=args.query_google
+                )
+                if tx_category:
+                    print(f"Saving category for {tx.concept}: {tx_category}")
+                    tx.category = tx_category
+                    # update DB
+                    session.add(tx)
+                    session.commit()
+                    revert_and_save_dict(categories_dict)
+                else:
+                    print("Not saving any category for thi Tx")
+        revert_and_save_dict(categories_dict)
+    except KeyboardInterrupt:
+        print("Closing")
 
 
 def main():
@@ -156,9 +165,12 @@ def main():
     # create tables
     SQLModel.metadata.create_all(engine)
 
-    args = cli()
-    if args.command:
-        args.func(args, engine)
+    try:
+        args = cli()
+        if args.command:
+            args.func(args, engine)
+    except  KeyboardInterrupt:
+        print("\nClosing")
 
 
 if __name__ == "__main__":

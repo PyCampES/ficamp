@@ -35,6 +35,7 @@ class Tx(SQLModel, table=True):
     amount: Decimal
     currency: Currency
     concept: str
+    concept_clean: Optional[str]
     category: None | str
     tx_metadata: dict[str, str] = Field(sa_column=Column(JSON))
     tags: list[str] = Field(sa_column=Column(JSON))

@@ -21,11 +21,21 @@ def remove_pipes(s: str) -> str:
     return " ".join(s.split("|"))
 
 
+def remove_colon(s: str) -> str:
+    return " ".join(s.split(":"))
+
+
+def remove_comma(s: str) -> str:
+    return " ".join(s.split(","))
+
+
 def preprocess(s: str) -> str:
     "Clean up transaction description"
     steps = (
         lambda s: s.lower(),
         remove_pipes,
+        remove_colon,
+        remove_comma,
         remove_digits,
     )
     out = s

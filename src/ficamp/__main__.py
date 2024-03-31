@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from ficamp.classifier.infer import infer_tx_category
+from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx
 from ficamp.parsers.abn import AbnParser
 
@@ -100,7 +101,8 @@ class DefaultAnswers(StrEnum):
 
 def query_business_category(tx, categories_dict, infer_category=False):
     # first try to get from the category_dict
-    category = categories_dict.get(tx.concept)
+    tx.concept_clean = preprocess(tx.concept)
+    category = categories_dict.get(tx.concept_clean)
     if category:
         return category
     # ask the user if we don't know it
@@ -112,7 +114,7 @@ def query_business_category(tx, categories_dict, infer_category=False):
         if inferred_category:
             categories_choices.append(inferred_category)
             default_choice = inferred_category
-    print(f"{tx.date.isoformat()} {tx.amount} {tx.concept}")
+    print(f"{tx.date.isoformat()} {tx.amount} {tx.concept_clean}")
     answer = questionary.select(
         "Please select the category for this TX",
         choices=categories_choices,
@@ -127,7 +129,7 @@ def query_business_category(tx, categories_dict, infer_category=False):
         # https://questionary.readthedocs.io/en/stable/pages/advanced.html#keyboard-interrupts
         raise KeyboardInterrupt
     if answer:
-        categories_dict[tx.concept] = answer
+        categories_dict[tx.concept_clean] = answer
         category = answer
     return category
 
@@ -139,6 +141,7 @@ def categorize(args, engine):
         with Session(engine) as session:
             statement = select(Tx).where(Tx.category.is_(None))
             results = session.exec(statement).all()
+            print(f"Got {len(results)} Tx to categorize")
             for tx in results:
                 print(f"Processing {tx}")
                 tx_category = query_business_category(

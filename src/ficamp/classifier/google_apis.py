@@ -84,7 +84,7 @@ def find_business_category_in_google(field, location=None):
     if categories:
         categories = list(set(categories) - set(keys_to_remove))
         return categories[0]
-    raise GoogleException
+    raise GoogleException("didn't find anything")
 
 
 def query_gmaps_category(concept):
@@ -94,13 +94,14 @@ def query_gmaps_category(concept):
         cached_category = cached.get(concept)
         if not cached_category:
             try:
-                gmaps_category = find_business_category_in_google(concept)
-            except GoogleException:
-                gmaps_category = "Unknown"
-            # print(gmaps_category)
+                ams = "52.3676,4.9041"
+                gmaps_category = find_business_category_in_google(concept, location=ams)
+            except GoogleException as error:
+                print(f"error: {error}")
+                gmaps_category = ""
             with open("gcache.json", "w") as cache_file:
                 cached[concept] = gmaps_category
                 json.dump(cached, cache_file)
         else:
             gmaps_category = cached_category
-    return gmaps_category
+    return gmaps_category.lower()

@@ -17,10 +17,15 @@ def remove_digits(s: str) -> str:
     return " ".join(clean)
 
 
+def remove_pipes(s: str) -> str:
+    return " ".join(s.split("|"))
+
+
 def preprocess(s: str) -> str:
     "Clean up transaction description"
     steps = (
         lambda s: s.lower(),
+        remove_pipes,
         remove_digits,
     )
     out = s

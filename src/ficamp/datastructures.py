@@ -29,6 +29,7 @@ class Concept:
 @dataclass
 class Tx(SQLModel, table=True):
     """Represents a transaction extracted from a bank"""
+
     id: Optional[int] = Field(default=None, primary_key=True)
     date: datetime
     amount: Decimal

@@ -97,7 +97,7 @@ def query_gmaps_category(concept):
                 gmaps_category = find_business_category_in_google(concept)
             except GoogleException:
                 gmaps_category = "Unknown"
-            #print(gmaps_category)
+            # print(gmaps_category)
             with open("gcache.json", "w") as cache_file:
                 cached[concept] = gmaps_category
                 json.dump(cached, cache_file)

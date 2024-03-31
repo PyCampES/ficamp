@@ -8,9 +8,9 @@ import questionary
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from ficamp.classifier.infer import infer_tx_category
 from ficamp.datastructures import Tx
 from ficamp.parsers.abn import AbnParser
-from ficamp.classifier.infer import infer_tx_category
 
 
 def cli() -> argparse.Namespace:
@@ -168,7 +168,7 @@ def main():
         args = cli()
         if args.command:
             args.func(args, engine)
-    except  KeyboardInterrupt:
+    except KeyboardInterrupt:
         print("\nClosing")
 
 

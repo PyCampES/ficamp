@@ -1,3 +1,5 @@
+from collections import defaultdict
+import pathlib
 import argparse
 import json
 import os
@@ -9,6 +11,7 @@ from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from ficamp.classifier.infer import infer_tx_category
+from ficamp.classifier.keywords import sort_by_keyword_matches
 from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx
 from ficamp.parsers.abn import AbnParser
@@ -80,7 +83,16 @@ class DefaultAnswers:
     NEW = "Type a new category"
 
 
-def query_business_category(tx, session, infer_category=False):
+def get_map_cat_to_kws(session):
+    statement = select(Tx).where(Tx.category.is_not(None))
+    known_cat_tx = session.exec(statement).all()
+    keywords = defaultdict(list)
+    for tx in known_cat_tx:
+        keywords[tx.category].extend(tx.concept_clean.split())
+    return keywords
+
+
+def _query_business_category(tx, session, infer_category=False):
     # first try to get from the category_dict
     tx.concept_clean = preprocess(tx.concept)
     statement = select(Tx.category).where(Tx.concept_clean == tx.concept_clean)
@@ -115,6 +127,49 @@ def query_business_category(tx, session, infer_category=False):
     return answer
 
 
+def query_business_category(tx, session):
+    tx.concept_clean = preprocess(tx.concept)
+
+    statement = select(Tx.category).where(Tx.concept_clean == tx.concept_clean)
+    category = session.exec(statement).first()
+    if category:
+        return category
+
+    cats = get_map_cat_to_kws(session)
+    # ask the user if we don't know it
+    # query each time to update
+    cats_sorted_by_matches = sort_by_keyword_matches(cats, tx.concept_clean)
+    categories_choices = [name for _, name in cats_sorted_by_matches]
+    categories_choices.extend([DefaultAnswers.NEW, DefaultAnswers.SKIP])
+    default_choice = categories_choices[0]
+
+    print(f"{tx.date.isoformat()} {tx.amount} {tx.concept_clean}")
+    answer = questionary.select(
+        "Please select the category for this TX",
+        choices=categories_choices,
+        default=default_choice,
+        show_selected=True,
+    ).ask()
+    if answer == DefaultAnswers.NEW:
+        answer = questionary.text("What's the category for the TX above").ask()
+    if answer == DefaultAnswers.SKIP:
+        return None
+    if answer is None:
+        # https://questionary.readthedocs.io/en/stable/pages/advanced.html#keyboard-interrupts
+        raise KeyboardInterrupt
+    return answer
+
+
+def load_keywords(filepath):
+    path = "keywords.json"
+    cats = defaultdict(list)
+    try:
+        print("Loading keywords")
+        cats |= json.loads(pathlib.Path(path).read_text())
+    except FileNotFoundError:
+        cats |= {"other": []}
+
+
 def categorize(args, engine):
     """Function to categorize transactions."""
     try:
@@ -124,8 +179,31 @@ def categorize(args, engine):
             print(f"Got {len(results)} Tx to categorize")
             for tx in results:
                 print(f"Processing {tx}")
+                tx_category = query_business_category(tx, session)
+                if tx_category:
+                    print(f"Saving category for {tx.concept}: {tx_category}")
+                    tx.category = tx_category
+                    # update DB
+                    session.add(tx)
+                    session.commit()
+                else:
+                    print("Not saving any category for thi Tx")
+    except KeyboardInterrupt:
+        print("Closing")
+
+
+def _categorize(args, engine):
+    """Function to categorize transactions."""
+    try:
+        with Session(engine) as session:
+            statement = select(Tx).where(Tx.category.is_(None))
+            results = session.exec(statement).all()
+            print(f"Got {len(results)} Tx to categorize")
+            for tx in results:
+                print(f"Processing {tx}")
                 tx_category = query_business_category(
-                    tx, session, infer_category=args.infer_category)
+                    tx, session, infer_category=args.infer_category
+                )
                 if tx_category:
                     print(f"Saving category for {tx.concept}: {tx_category}")
                     tx.category = tx_category

@@ -23,14 +23,8 @@ def categorical_hash_bucket(item: str, *, buckets: int) -> int:
     return murmurhash3_32(item, positive=True) % buckets
 
 
-def make_lowercase(d):
-    return {"desc": d["desc"].lower()}
-
-
-def remove_numbers(d):
-    """Return string without number like SEPA 12312321 BIC --> SEPA BIC"""
-    # TODO: remove hardcoded value
-    return d
+# def make_lowercase(d):
+#     return {"desc": d["desc"].lower()}
 
 
 def has_iban(d) -> str:

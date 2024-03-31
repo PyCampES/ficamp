@@ -1,25 +1,29 @@
-import features
+def remove_digits(s: str) -> str:
+    """
+    Return string without words that have more that 2 digits.
+    examples:
+        like SEPA 12312321 BIC --> SEPA BIC
+        like SEPA12 --> SEPA12
+    """
+    clean = []
+    words = s.split()
+
+    for word in words:
+        n_char = 0
+        for char in word:
+            n_char += char.isdigit()
+        if n_char <= 2:
+            clean.append(word)
+    return " ".join(clean)
 
 
-def preprocess(inp: dict):
-    """
-    Each preprocessing step takes a dict and returns a dict.
-    It is assumed that each steps knows how to deal with the content
-    of the input received.
-    """
+def preprocess(s: str) -> str:
+    "Clean up transaction description"
     steps = (
-        features.make_lowercase,
-        features.remove_numbers,
-        features.has_iban,
-        features.extract_city,
-        features.extract_payment_method,
+        lambda s: s.lower(),
+        remove_digits,
     )
-    out = inp
+    out = s
     for func in steps:
         out = func(out)
     return out
-
-
-preproc = preprocess({"desc": "HELLO world"})
-feats = features.get_features(preproc)
-encoded = features.one_hot_encode(feats)

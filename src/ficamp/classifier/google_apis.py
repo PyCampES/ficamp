@@ -20,7 +20,7 @@ def search_google_maps(business_name, location=None, api_key=GOOGLE_API_KEY):
     response = requests.get(base_url, params=params)
     response.raise_for_status()
     if response.json()["status"] != "OK":
-        raise GoogleException(response.json()["error_message"])
+        raise GoogleException(response.json())
     results = response.json().get("results", [])
     if results:
         # Assuming the first result is the most relevant
@@ -40,7 +40,7 @@ def get_place_details(place_id):
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     if response.json()["status"] != "OK":
-        raise GoogleException(response.json()["error_message"])
+        raise GoogleException(response.json())
     return response.json().get("types", [])
 
 
@@ -55,7 +55,7 @@ def query_google_places_new(query):
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     response.raise_for_status()
     if response.json()["status"] != "OK":
-        raise GoogleException(response.json()["error_message"])
+        raise GoogleException(response.json())
     places = response.json().get("places", [])
     if places:
         categories = places[0].get("types", [])
@@ -65,6 +65,7 @@ def query_google_places_new(query):
 
 
 def find_business_category_in_google(field, location=None):
+    """Queries Google maps and try to get a category from it"""
     keys_to_remove = ["point_of_interest", "establishment", "store", "department_store"]
     # first try using google map places search
     place_id_gmaps, categories = search_google_maps(field, location)
@@ -84,3 +85,22 @@ def find_business_category_in_google(field, location=None):
         categories = list(set(categories) - set(keys_to_remove))
         return categories[0]
     raise GoogleException
+
+
+def query_gmaps_category(concept):
+    """Pycamp internet is slow. saving data locally to go faster"""
+    with open("gcache.json") as cache_file:
+        cached = json.load(cache_file)
+        cached_category = cached.get(concept)
+        if not cached_category:
+            try:
+                gmaps_category = find_business_category_in_google(concept)
+            except GoogleException:
+                gmaps_category = "Unknown"
+            #print(gmaps_category)
+            with open("gcache.json", "w") as cache_file:
+                cached[concept] = gmaps_category
+                json.dump(cached, cache_file)
+        else:
+            gmaps_category = cached_category
+    return gmaps_category

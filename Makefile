@@ -1,2 +1,5 @@
 test:
-	python -m pytest tests/
+	poetry run pytest tests/
+
+format:
+	poetry run scripts/format

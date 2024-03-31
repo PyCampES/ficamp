@@ -1,8 +1,8 @@
 import pytest
 
 from ficamp.classifier.preprocessing import (
-    remove_digits,
     preprocess,
+    remove_digits,
 )
 
 

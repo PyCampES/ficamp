@@ -1,3 +1,6 @@
+import string
+
+
 def remove_digits(s: str) -> str:
     """
     Return string without words that have more that 2 digits.
@@ -29,6 +32,27 @@ def remove_comma(s: str) -> str:
     return " ".join(s.split(","))
 
 
+def remove_punctuation(s: str) -> str:
+    punctuation = set(string.punctuation)
+    out = "".join((" " if char in punctuation else char for char in s))
+    return " ".join(out.split())  # Remove double spaces
+
+
+def remove_isolated_digits(s: str) -> str:
+    """Remove words made only of digits"""
+    digits = set(string.digits)
+    clean = []
+    for word in s.split():
+        if not all((char in digits for char in word)):
+            clean.append(word)
+    return " ".join(clean)
+
+
+def remove_short_words(s: str) -> str:
+    """Remove words made only of digits"""
+    return " ".join((word for word in s.split() if len(word) >= 2))
+
+
 def preprocess(s: str) -> str:
     "Clean up transaction description"
     steps = (
@@ -37,6 +61,9 @@ def preprocess(s: str) -> str:
         remove_colon,
         remove_comma,
         remove_digits,
+        remove_punctuation,
+        remove_isolated_digits,
+        remove_short_words,
     )
     out = s
     for func in steps:

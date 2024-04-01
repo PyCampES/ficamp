@@ -1,20 +1,13 @@
 import argparse
-import json
-import os
-import shutil
-from enum import StrEnum
+from collections import defaultdict
 
 import questionary
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from ficamp.classifier.infer import infer_tx_category
+from ficamp.classifier.keywords import sort_by_keyword_matches
 from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx
-from ficamp.parsers.abn import AbnParser
-from ficamp.parsers.bbva import AccountBBVAParser, CreditCardBBVAParser
-from ficamp.parsers.bsabadell import AccountBSabadellParser, CreditCardBSabadellParser
-from ficamp.parsers.caixabank import CaixaBankParser
 from ficamp.parsers.enums import BankParser
 
 
@@ -37,14 +30,13 @@ def cli() -> argparse.Namespace:
         default="abn",
         help="Specify the bank for the import",
     )
-    import_parser.add_argument("filename", help="File to load")
+    import_parser.add_argument("--filename", help="File to load")
     import_parser.set_defaults(func=import_data)
 
     # Subparser for the categorize command
     categorize_parser = subparsers.add_parser(
         "categorize", help="Categorize transactions"
     )
-    categorize_parser.add_argument("--infer-category", action="store_true")
     categorize_parser.set_defaults(func=categorize)
 
     args = parser.parse_args()
@@ -80,25 +72,34 @@ class DefaultAnswers:
     NEW = "Type a new category"
 
 
-def query_business_category(tx, session, infer_category=False):
-    # first try to get from the category_dict
+def make_map_cat_to_kws(session):
+    statement = select(Tx).where(Tx.category.is_not(None))
+    known_cat_tx = session.exec(statement).all()
+    keywords = defaultdict(list)
+    for tx in known_cat_tx:
+        keywords[tx.category].extend(tx.concept_clean.split())
+    return keywords
+
+
+def query_business_category(tx, session):
+    # Clean up the transaction concept string
     tx.concept_clean = preprocess(tx.concept)
+
+    # If there is an exact match to the known transactions, return that one
     statement = select(Tx.category).where(Tx.concept_clean == tx.concept_clean)
     category = session.exec(statement).first()
     if category:
         return category
-    # ask the user if we don't know it
-    # query each time to update
-    statement = select(Tx.category).where(Tx.category.is_not(None)).distinct()
-    categories_choices = session.exec(statement).all()
+
+    # Build map of category --> keywords
+    cats = make_map_cat_to_kws(session)
+    cats_sorted_by_matches = sort_by_keyword_matches(cats, tx.concept_clean)
+    # Show categories to user sorted by keyword criterion
+    categories_choices = [cat for _, cat in cats_sorted_by_matches]
     categories_choices.extend([DefaultAnswers.NEW, DefaultAnswers.SKIP])
-    default_choice = DefaultAnswers.SKIP
-    if infer_category:
-        inferred_category = infer_tx_category(tx)
-        if inferred_category:
-            categories_choices.append(inferred_category)
-            default_choice = inferred_category
-    print(f"{tx.date.isoformat()} {tx.amount} {tx.concept_clean}")
+    default_choice = categories_choices[0]
+
+    print(f"{tx.date.isoformat()} | {tx.amount} | {tx.concept_clean}")
     answer = questionary.select(
         "Please select the category for this TX",
         choices=categories_choices,
@@ -115,8 +116,8 @@ def query_business_category(tx, session, infer_category=False):
     return answer
 
 
-def categorize(args, engine):
-    """Function to categorize transactions."""
+def categorize(engine):
+    """Classify transactions into categories"""
     try:
         with Session(engine) as session:
             statement = select(Tx).where(Tx.category.is_(None))
@@ -124,8 +125,7 @@ def categorize(args, engine):
             print(f"Got {len(results)} Tx to categorize")
             for tx in results:
                 print(f"Processing {tx}")
-                tx_category = query_business_category(
-                    tx, session, infer_category=args.infer_category)
+                tx_category = query_business_category(tx, session)
                 if tx_category:
                     print(f"Saving category for {tx.concept}: {tx_category}")
                     tx.category = tx_category
@@ -135,19 +135,16 @@ def categorize(args, engine):
                 else:
                     print("Not saving any category for thi Tx")
     except KeyboardInterrupt:
-        print("Closing")
+        print("Session interrupted. Closing.")
 
 
 def main():
-    # create DB
-    engine = create_engine("sqlite:///ficamp.db")
-    # create tables
-    SQLModel.metadata.create_all(engine)
-
+    engine = create_engine("sqlite:///ficamp.db")  # create DB
+    SQLModel.metadata.create_all(engine)  # create tables
     try:
         args = cli()
         if args.command:
-            args.func(args, engine)
+            args.func(engine)
     except KeyboardInterrupt:
         print("\nClosing")
 

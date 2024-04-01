@@ -8,6 +8,7 @@ from ficamp.classifier.preprocessing import (
     remove_pipes,
     remove_punctuation,
     remove_isolated_digits,
+    remove_short_words,
 )
 
 
@@ -85,6 +86,17 @@ def test_remove_isolated_digits(inp, exp):
 @pytest.mark.parametrize(
     ("inp,exp"),
     (
+        ("hello a world", "hello world"),
+        ("hello aa world", "hello aa world"),
+    ),
+)
+def test_remove_short_words(inp, exp):
+    assert remove_short_words(inp) == exp
+
+
+@pytest.mark.parametrize(
+    ("inp,exp"),
+    (
         ("SEPA", "sepa"),
         ("123", ""),
         ("sepa12", "sepa12"),  #  it has only 2 digits
@@ -98,6 +110,7 @@ def test_remove_isolated_digits(inp, exp):
         ("CSID:NL0213324324324 HELLO,world1332", "csid hello"),
         ("CSID:NL021332432 N26 HELLO,world1332", "csid n26 hello"),
         ("CSID:NL021332432 4324 HELLO,world1332", "csid hello"),
+        ("CSID:NL021332432 n. HELLO,world1332", "csid hello"),
     ),
 )
 def test_preprocess(inp, exp):

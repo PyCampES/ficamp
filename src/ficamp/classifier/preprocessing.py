@@ -48,6 +48,11 @@ def remove_isolated_digits(s: str) -> str:
     return " ".join(clean)
 
 
+def remove_short_words(s: str) -> str:
+    """Remove words made only of digits"""
+    return " ".join((word for word in s.split() if len(word) >= 2))
+
+
 def preprocess(s: str) -> str:
     "Clean up transaction description"
     steps = (
@@ -58,6 +63,7 @@ def preprocess(s: str) -> str:
         remove_digits,
         remove_punctuation,
         remove_isolated_digits,
+        remove_short_words,
     )
     out = s
     for func in steps:

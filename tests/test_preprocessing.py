@@ -6,6 +6,8 @@ from ficamp.classifier.preprocessing import (
     remove_comma,
     remove_digits,
     remove_pipes,
+    remove_punctuation,
+    remove_isolated_digits,
 )
 
 
@@ -59,6 +61,30 @@ def test_remove_comma(inp, exp):
 @pytest.mark.parametrize(
     ("inp,exp"),
     (
+        ("hello world", "hello world"),
+        ("hello/world", "hello world"),
+        ("hello.world", "hello world"),
+        ("hello.(.world))", "hello world"),
+    ),
+)
+def test_remove_punctuation(inp, exp):
+    assert remove_punctuation(inp) == exp
+
+
+@pytest.mark.parametrize(
+    ("inp,exp"),
+    (
+        ("hello22 world", "hello22 world"),
+        ("hello 22 world", "hello world"),
+    ),
+)
+def test_remove_isolated_digits(inp, exp):
+    assert remove_isolated_digits(inp) == exp
+
+
+@pytest.mark.parametrize(
+    ("inp,exp"),
+    (
         ("SEPA", "sepa"),
         ("123", ""),
         ("sepa12", "sepa12"),  #  it has only 2 digits
@@ -70,6 +96,8 @@ def test_remove_comma(inp, exp):
         ("SEPA 1231|AMSTERDAM 123BIC", "sepa amsterdam"),
         ("CSID:NL0213324324324", "csid"),
         ("CSID:NL0213324324324 HELLO,world1332", "csid hello"),
+        ("CSID:NL021332432 N26 HELLO,world1332", "csid n26 hello"),
+        ("CSID:NL021332432 4324 HELLO,world1332", "csid hello"),
     ),
 )
 def test_preprocess(inp, exp):

@@ -1,11 +1,10 @@
-from collections import defaultdict
 import argparse
+from collections import defaultdict
 
 import questionary
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from ficamp.classifier.infer import infer_tx_category
 from ficamp.classifier.keywords import sort_by_keyword_matches
 from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx

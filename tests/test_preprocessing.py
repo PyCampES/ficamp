@@ -5,9 +5,9 @@ from ficamp.classifier.preprocessing import (
     remove_colon,
     remove_comma,
     remove_digits,
+    remove_isolated_digits,
     remove_pipes,
     remove_punctuation,
-    remove_isolated_digits,
     remove_short_words,
 )
 

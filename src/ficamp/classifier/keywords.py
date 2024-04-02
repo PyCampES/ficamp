@@ -1,6 +1,7 @@
 """
 Logic to sort transactions based on keywords.
 """
+
 import json
 import pathlib
 

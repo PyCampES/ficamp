@@ -11,7 +11,7 @@ from pathlib import Path
 import xlrd  # type: ignore
 
 from ficamp.datastructures import Currency, Tx
-from ficamp.parsers.protocols import Parser
+from ficamp.parsers.protocols import ParserProtocol
 
 TRANSACTIONDATE_REGEX = r"(\d{4})(\d{2})(\d{2})"
 transactiondate_re = re.compile(TRANSACTIONDATE_REGEX)
@@ -105,7 +105,7 @@ class ConceptParser:
         return "ABN AMRO|" + concept
 
 
-class AbnParser(Parser):
+class AbnParser(ParserProtocol):
     """Parser for ABN AMRO bank statements.
 
     ABN uses the old `.xls` excel version, and we require xlrd
@@ -162,10 +162,12 @@ class AbnParser(Parser):
         _concept = self.concept_parser.parse(concept)
 
         return Tx(
+            id=None,
             date=_date,
             amount=_amount,
             currency=_currency,
             concept=_concept,
+            concept_clean=None,
             category=None,
             tx_metadata={},
             tags=[],

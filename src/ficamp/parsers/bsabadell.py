@@ -5,10 +5,10 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 from ficamp.datastructures import Currency, Tx
-from ficamp.parsers.protocols import Parser
+from ficamp.parsers.protocols import ParserProtocol
 
 
-class AccountBSabadellParser(Parser):
+class AccountBSabadellParser(ParserProtocol):
     """Parser for BSabadell bank account extract"""
 
     def load(self, filename: Path):
@@ -62,7 +62,7 @@ class AccountBSabadellParser(Parser):
         return concept
 
 
-class CreditCardBSabadellParser(Parser):
+class CreditCardBSabadellParser(ParserProtocol):
     """Parser for BSabadell Credit Card Extract"""
 
     def load(self, filename: Path):

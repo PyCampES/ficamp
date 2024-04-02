@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 
 import requests
 
@@ -89,7 +90,10 @@ def find_business_category_in_google(field, location=None):
 
 def query_gmaps_category(concept):
     """Pycamp internet is slow. saving data locally to go faster"""
-    with open("gcache.json") as cache_file:
+    cache = pathlib.Path("gcache.json")
+    if not cache.exists():  # Create a valid json file if it doesn't yet exist
+        cache.write_text("{}")
+    with open(cache) as cache_file:
         cached = json.load(cache_file)
         cached_category = cached.get(concept)
         if not cached_category:
@@ -99,7 +103,7 @@ def query_gmaps_category(concept):
             except GoogleException as error:
                 print(f"error: {error}")
                 gmaps_category = ""
-            with open("gcache.json", "w") as cache_file:
+            with open(cache, "w") as cache_file:
                 cached[concept] = gmaps_category
                 json.dump(cached, cache_file)
         else:

@@ -1,3 +1,14 @@
+## 0.12.0 (2024-04-02)
+
+### Feat
+
+- add sinks protocols
+
+### Fix
+
+- type hint errors
+- rename parser protocol
+
 ## 0.11.0 (2024-04-01)
 
 ## 0.10.0 (2024-03-31)

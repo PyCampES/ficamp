@@ -138,13 +138,25 @@ def categorize(engine):
         print("Session interrupted. Closing.")
 
 
+def sync(args, engine):
+    total_per_category = defaultdict(Decimal)
+    with Session(engine) as session:
+        statement = select(Tx)
+        results = session.exec(statement).all()
+        print(f"Got {len(results)} Tx to report")
+        for tx in results:
+            total_per_category[tx.category] += tx.amount
+    for k, v in total_per_category.items():
+        print(k, v)
+
+
 def main():
     engine = create_engine("sqlite:///ficamp.db")  # create DB
     SQLModel.metadata.create_all(engine)  # create tables
     try:
         args = cli()
         if args.command:
-            args.func(engine)
+            args.func(args, engine)
     except KeyboardInterrupt:
         print("\nClosing")
 

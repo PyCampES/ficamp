@@ -4,7 +4,7 @@ from typing import Protocol
 from ficamp.datastructures import Tx
 
 
-class Parser(Protocol):
+class ParserProtocol(Protocol):
     """Main protocol to define parsers for different banks."""
 
     def load(self, filename: Path): ...

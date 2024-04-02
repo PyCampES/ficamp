@@ -23,7 +23,7 @@ def cli() -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Subparser for the import command
-    import_parser = subparsers.add_parser("import", help="Import a Transactions")
+    import_parser = subparsers.add_parser("import", help="Import transactions")
     import_parser.add_argument(
         "--bank",
         choices=[e.value for e in BankParser],

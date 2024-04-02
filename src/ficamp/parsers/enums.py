@@ -4,6 +4,7 @@ from ficamp.parsers.abn import AbnParser
 from ficamp.parsers.bbva import AccountBBVAParser, CreditCardBBVAParser
 from ficamp.parsers.bsabadell import AccountBSabadellParser, CreditCardBSabadellParser
 from ficamp.parsers.caixabank import CaixaBankParser
+from ficamp.parsers.protocols import ParserProtocol
 
 
 class BankParser(StrEnum):
@@ -14,7 +15,7 @@ class BankParser(StrEnum):
     BSABADELL_CREDIT = "bsabadell-credit"
     CAIXABANK = "caixabank"
 
-    def get_parser(self):
+    def get_parser(self) -> ParserProtocol:
         if self == BankParser.ABN:
             return AbnParser()
         if self == BankParser.BBVA_ACCOUNT:

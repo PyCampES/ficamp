@@ -2,11 +2,12 @@
 Logic to sort transactions based on keywords.
 """
 
-import json
-import pathlib
+from typing import Any
 
 
-def sort_by_keyword_matches(categories: dict, description: str) -> list[str]:
+def sort_by_keyword_matches(
+    categories: dict, description: str
+) -> list[tuple[int, Any]]:
     description = description.lower()
     matches = []
     for category, keywords in categories.items():

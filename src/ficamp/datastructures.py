@@ -30,12 +30,14 @@ class Concept:
 class Tx(SQLModel, table=True):
     """Represents a transaction extracted from a bank"""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
     date: datetime
     amount: Decimal
     currency: Currency
     concept: str
     concept_clean: Optional[str]
     category: None | str
+
+    # fields with defaults
+    id: Optional[int] = Field(default=None, primary_key=True)
     tx_metadata: dict[str, str] = Field(sa_column=Column(JSON))
     tags: list[str] = Field(sa_column=Column(JSON))

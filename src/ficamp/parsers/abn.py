@@ -162,10 +162,12 @@ class AbnParser(ParserProtocol):
         _concept = self.concept_parser.parse(concept)
 
         return Tx(
+            id=None,
             date=_date,
             amount=_amount,
             currency=_currency,
             concept=_concept,
+            concept_clean=None,
             category=None,
             tx_metadata={},
             tags=[],

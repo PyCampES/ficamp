@@ -6,6 +6,7 @@ import questionary
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from ficamp.classifier.infer import infer_tx_category
 from ficamp.classifier.keywords import sort_by_keyword_matches
 from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx
@@ -39,6 +40,11 @@ def cli() -> argparse.Namespace:
         "categorize", help="Categorize transactions"
     )
     categorize_parser.set_defaults(func=categorize)
+    categorize_parser.add_argument(
+        "--hints",
+        help="Query some APIs to hint the categroy of the Tx",
+        action="store_true",
+    )
 
     # Subparser for the sync command
     categorize_parser = subparsers.add_parser("sync", help="Report transactions")
@@ -130,6 +136,9 @@ def categorize(args, engine):
             print(f"Got {len(results)} Tx to categorize")
             for tx in results:
                 print(f"Processing {tx}")
+                hinted_category = infer_tx_category(tx)
+                if hinted_category:
+                    print(f"Hint! This seems to be category: {hinted_category}")
                 tx_category = query_business_category(tx, session)
                 if tx_category:
                     print(f"Saving category for {tx.concept}: {tx_category}")

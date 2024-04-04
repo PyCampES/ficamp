@@ -1,3 +1,9 @@
+## 0.13.0 (2024-04-04)
+
+### Fix
+
+- create gmaps api cache json file if not there
+
 ## 0.12.0 (2024-04-02)
 
 ### Feat

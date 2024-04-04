@@ -1,5 +1,6 @@
 import argparse
 from collections import defaultdict
+from decimal import Decimal
 
 import questionary
 from dotenv import load_dotenv
@@ -38,6 +39,10 @@ def cli() -> argparse.Namespace:
         "categorize", help="Categorize transactions"
     )
     categorize_parser.set_defaults(func=categorize)
+
+    # Subparser for the sync command
+    categorize_parser = subparsers.add_parser("sync", help="Report transactions")
+    categorize_parser.set_defaults(func=sync)
 
     args = parser.parse_args()
 
@@ -116,7 +121,7 @@ def query_business_category(tx, session):
     return answer
 
 
-def categorize(engine):
+def categorize(args, engine):
     """Classify transactions into categories"""
     try:
         with Session(engine) as session:
@@ -138,13 +143,25 @@ def categorize(engine):
         print("Session interrupted. Closing.")
 
 
+def sync(args, engine):
+    total_per_category = defaultdict(Decimal)
+    with Session(engine) as session:
+        statement = select(Tx)
+        results = session.exec(statement).all()
+        print(f"Got {len(results)} Tx to report")
+        for tx in results:
+            total_per_category[tx.category] += tx.amount
+    for k, v in total_per_category.items():
+        print(k, v)
+
+
 def main():
     engine = create_engine("sqlite:///ficamp.db")  # create DB
     SQLModel.metadata.create_all(engine)  # create tables
     try:
         args = cli()
         if args.command:
-            args.func(engine)
+            args.func(args, engine)
     except KeyboardInterrupt:
         print("\nClosing")
 

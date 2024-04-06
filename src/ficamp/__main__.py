@@ -1,10 +1,12 @@
 import argparse
 from collections import defaultdict
+from decimal import Decimal
 
 import questionary
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from ficamp.classifier.infer import infer_tx_category
 from ficamp.classifier.keywords import sort_by_keyword_matches
 from ficamp.classifier.preprocessing import preprocess
 from ficamp.datastructures import Tx
@@ -38,6 +40,15 @@ def cli() -> argparse.Namespace:
         "categorize", help="Categorize transactions"
     )
     categorize_parser.set_defaults(func=categorize)
+    categorize_parser.add_argument(
+        "--hints",
+        help="Query some APIs to hint the categroy of the Tx",
+        action="store_true",
+    )
+
+    # Subparser for the sync command
+    categorize_parser = subparsers.add_parser("sync", help="Report transactions")
+    categorize_parser.set_defaults(func=sync)
 
     args = parser.parse_args()
 
@@ -116,7 +127,7 @@ def query_business_category(tx, session):
     return answer
 
 
-def categorize(engine):
+def categorize(args, engine):
     """Classify transactions into categories"""
     try:
         with Session(engine) as session:
@@ -125,6 +136,9 @@ def categorize(engine):
             print(f"Got {len(results)} Tx to categorize")
             for tx in results:
                 print(f"Processing {tx}")
+                hinted_category = infer_tx_category(tx)
+                if hinted_category:
+                    print(f"Hint! This seems to be category: {hinted_category}")
                 tx_category = query_business_category(tx, session)
                 if tx_category:
                     print(f"Saving category for {tx.concept}: {tx_category}")
@@ -138,13 +152,25 @@ def categorize(engine):
         print("Session interrupted. Closing.")
 
 
+def sync(args, engine):
+    total_per_category = defaultdict(Decimal)
+    with Session(engine) as session:
+        statement = select(Tx)
+        results = session.exec(statement).all()
+        print(f"Got {len(results)} Tx to report")
+        for tx in results:
+            total_per_category[tx.category] += tx.amount
+    for k, v in total_per_category.items():
+        print(k, v)
+
+
 def main():
     engine = create_engine("sqlite:///ficamp.db")  # create DB
     SQLModel.metadata.create_all(engine)  # create tables
     try:
         args = cli()
         if args.command:
-            args.func(engine)
+            args.func(args, engine)
     except KeyboardInterrupt:
         print("\nClosing")
 
